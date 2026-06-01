@@ -14,13 +14,266 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          target: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      channels: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consents: {
+        Row: {
+          created_at: string
+          granted_at: string | null
+          id: string
+          revoked_at: string | null
+          type: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          granted_at?: string | null
+          id?: string
+          revoked_at?: string | null
+          type: string
+          user_id: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          granted_at?: string | null
+          id?: string
+          revoked_at?: string | null
+          type?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          channel_id: string
+          content: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          sender_id: string
+          session_id: string
+        }
+        Insert: {
+          channel_id: string
+          content: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          sender_id: string
+          session_id: string
+        }
+        Update: {
+          channel_id?: string
+          content?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          sender_id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          birthdate: string | null
+          consent_at: string | null
+          consent_version: string | null
+          created_at: string
+          display_name: string
+          id: string
+          restricted_mode: boolean
+        }
+        Insert: {
+          birthdate?: string | null
+          consent_at?: string | null
+          consent_version?: string | null
+          created_at?: string
+          display_name: string
+          id: string
+          restricted_mode?: boolean
+        }
+        Update: {
+          birthdate?: string | null
+          consent_at?: string | null
+          consent_version?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          restricted_mode?: boolean
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      session_members: {
+        Row: {
+          joined_at: string
+          role: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          role?: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          role?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_members_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          ttl_expires_at: string | null
+          type: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          ttl_expires_at?: string | null
+          type?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          ttl_expires_at?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_session_member: {
+        Args: { _session_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_session_owner: {
+        Args: { _session_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

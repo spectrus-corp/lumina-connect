@@ -19,6 +19,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const redirectTo = search.redirect.startsWith("/") ? search.redirect : "/app";
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,18 +36,18 @@ function AuthPage() {
         await supabase.auth.signOut();
         return;
       }
-      if (data.user) navigate({ to: search.redirect, replace: true });
+      if (data.user) navigate({ to: redirectTo as never, replace: true });
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
-        navigate({ to: search.redirect, replace: true });
+        navigate({ to: redirectTo as never, replace: true });
       }
     });
     return () => {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [navigate, search.redirect]);
+  }, [navigate, redirectTo]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -16,11 +16,15 @@ export const createSession = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    // Use admin client for create flow: after INSERT into sessions, the
+    // returning .select() is blocked by RLS (user is not yet a member),
+    // so .single() returns null and the subsequent inserts crash.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Generate unique code (retry up to 5x in unlikely collision)
     let code = generateSessionCode();
     for (let i = 0; i < 5; i++) {
-      const { data: existing } = await supabase
+      const { data: existing } = await supabaseAdmin
         .from("sessions")
         .select("id")
         .eq("code", code)
@@ -34,7 +38,7 @@ export const createSession = createServerFn({ method: "POST" })
         ? new Date(Date.now() + data.ttlHours * 3600 * 1000).toISOString()
         : null;
 
-    const { data: session, error } = await supabase
+    const { data: session, error } = await supabaseAdmin
       .from("sessions")
       .insert({
         name: data.name,
@@ -46,16 +50,17 @@ export const createSession = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
+    if (!session) throw new Error("Impossible de créer la session.");
 
     // Add owner as member
-    await supabase.from("session_members").insert({
+    await supabaseAdmin.from("session_members").insert({
       session_id: session.id,
       user_id: userId,
       role: "owner",
     });
 
     // Default channel
-    await supabase.from("channels").insert({
+    await supabaseAdmin.from("channels").insert({
       session_id: session.id,
       name: "général",
     });
